@@ -1,11 +1,15 @@
-
 from django.urls import path
 
-from . import views
+from .views import (
+    ListAppendView,
+    login_view,
+    logout_view,
+    register
+)
 
 urlpatterns = [
-    path("", views.index, name="index"),
-    path("login", views.login_view, name="login"),
-    path("logout", views.logout_view, name="logout"),
-    path("register", views.register, name="register")
+    path("", ListAppendView.as_view(), name="index"),
+    path("login/", login_view, name="login"),
+    path("logout/", logout_view, name="logout"),
+    path("register/", register, name="register"),
 ]
