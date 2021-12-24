@@ -1,14 +1,49 @@
 from django.contrib.auth import authenticate, login, logout
 from django.db import IntegrityError
-from django.http import HttpResponse, HttpResponseRedirect
+from django.http import HttpResponseRedirect
 from django.shortcuts import render
 from django.urls import reverse
+from django.views.generic.edit import ModelFormMixin, ProcessFormView
+from django.views.generic.list import MultipleObjectMixin, MultipleObjectTemplateResponseMixin
 
-from .models import User
+from .models import User, Post
 
 
-def index(request):
-    return render(request, "network/index.html")
+class ListAppendView(MultipleObjectMixin,
+                     MultipleObjectTemplateResponseMixin,
+                     ModelFormMixin,
+                     ProcessFormView):
+    """ A View that displays a list of objects and a form to create a new object.
+    The View processes this form. """
+    template_name = 'network/index.html'
+    fields = ['title', 'content']
+    allow_empty = True
+    ordering = '-date_posted'
+    model = Post
+
+    def get(self, request, *args, **kwargs):
+        self.object_list = self.get_queryset()
+        self.object = None
+        form_class = self.get_form_class()
+        form = self.get_form(form_class)
+        context = self.get_context_data(object_list=self.object_list, form=form)
+        return self.render_to_response(context)
+
+    def post(self, request, *args, **kwargs):
+        title = request.POST['title']
+        content = request.POST['content']
+        p = Post(author=request.user, title=title, content=content)
+        p.save()
+        self.object = None
+        form_class = self.get_form_class()
+        form = self.get_form(form_class)
+        self.object_list = self.get_queryset()
+        context = self.get_context_data(object_list=self.object_list, form=form)
+        return render(request, 'network/index.html', context)
+
+    def form_invalid(self, form):
+        self.object_list = self.get_queryset()
+        return self.render_to_response(self.get_context_data(object_list=self.object_list, form=form))
 
 
 def login_view(request):
