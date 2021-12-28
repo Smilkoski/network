@@ -5,7 +5,7 @@ from .views import (
     login_view,
     logout_view,
     register,
-    UserDetailView,
+    UserListView,
     follow,
     unfollow,
     FollowingListView,
@@ -13,7 +13,7 @@ from .views import (
 
 urlpatterns = [
     path("", ListAppendView.as_view(), name="index"),
-    path("detail/<int:pk>/", UserDetailView.as_view(), name="user-detail"),
+    path("detail/<int:pk>/", UserListView.as_view(), name="user-detail"),
     path("follow/<int:pk1>/<int:pk2>/", follow, name="follow"),
     path("unfollow/<int:pk1>/<int:pk2>/", unfollow, name="unfollow"),
     path("following/", FollowingListView.as_view(), name="following"),
