@@ -65,3 +65,11 @@ span, svg{
     width: 22px;
     display: inline;
 }
+
+.follow{
+    margin-bottom: 20px;
+    height: 30px;
+    min-width: 100px;
+    border-radius: 25px;
+    border: none;
+}
