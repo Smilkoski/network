@@ -6,7 +6,7 @@
             <h2 class="account-heading">{{ visited_user.username }}</h2>
             <h2>followers {{ followers }}</h2>
             <h2>following {{ following }}</h2>
-            {% if visited_user.id != signed_user.id %}
+            {% if not_same_user %}
                 {% if follows %}
                     <a class="follow btn btn-light" href="{% url 'unfollow' singed_user.id visited_user.id %}">Unfollow</a>
                 {% else %}
