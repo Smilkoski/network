@@ -1,11 +1,19 @@
 from django.contrib.auth.models import AbstractUser
 from django.db import models
-from django.utils import timezone
 from django.urls import reverse
+from django.utils import timezone
 
 
 class User(AbstractUser):
     pass
+
+
+class Follower(models.Model):
+    follower = models.ForeignKey(User, on_delete=models.CASCADE, related_name='ufs')
+    following = models.ForeignKey(User, on_delete=models.CASCADE, related_name='ufg')
+
+    def __str__(self):
+        return self.id
 
 
 class Post(models.Model):
@@ -19,4 +27,4 @@ class Post(models.Model):
         return self.title
 
     def get_absolute_url(self):
-        return reverse('post-detail', kwargs={'pk':self.pk})
+        return reverse('post-detail', kwargs={'pk': self.pk})
