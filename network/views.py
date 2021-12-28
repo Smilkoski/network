@@ -4,7 +4,6 @@ from django.http import HttpResponseRedirect
 from django.shortcuts import render, redirect
 from django.urls import reverse
 from django.views.generic import (
-    DetailView,
     ListView,
 )
 from django.views.generic.edit import ModelFormMixin, ProcessFormView
@@ -24,6 +23,7 @@ class ListAppendView(MultipleObjectMixin,
     allow_empty = True
     ordering = '-date_posted'
     model = Post
+    paginate_by = 10
 
     def get(self, request, *args, **kwargs):
         self.object_list = self.get_queryset()
@@ -50,14 +50,20 @@ class ListAppendView(MultipleObjectMixin,
         return self.render_to_response(self.get_context_data(object_list=self.object_list, form=form))
 
 
-class UserDetailView(DetailView):
-    model = User
+class UserListView(ListView):
+    context_object_name = 'object_list'
+    template_name = 'network/user_detail.html'
+    paginate_by = 10
 
-    def get_context_data(self, **kwargs):
-        context = {}
+    def get_queryset(self):
+        return Post.objects.filter(author=self.kwargs['pk']).order_by('-date_posted')
+
+    def get_context_data(self, *args, **kwargs):
+        context = super(UserListView, self).get_context_data(**kwargs)
+
         signed_user = User.objects.get(pk=self.request.user.id)
         context['singed_user'] = signed_user
-        visited_user = User.objects.get(pk=kwargs['object'].id)
+        visited_user = User.objects.get(pk=self.kwargs['pk'])
         context['visited_user'] = visited_user
 
         if Follower.objects.filter(follower_id=signed_user, following_id=visited_user).count() > 0:
@@ -68,8 +74,6 @@ class UserDetailView(DetailView):
         context['followers'] = Follower.objects.filter(following_id=visited_user).count()
         context['following'] = Follower.objects.filter(follower_id=visited_user).count()
 
-        context['posts'] = Post.objects.filter(author=visited_user).order_by('-date_posted')
-
         context['not_same_user'] = not (signed_user.id == visited_user.id)
 
         return context
@@ -79,6 +83,7 @@ class FollowingListView(ListView):
     model = Post
     context_object_name = 'object_list'
     template_name = 'network/following_users.html'
+    paginate_by = 10
 
     def get_queryset(self):
         following_users = Follower.objects.filter(follower_id=self.request.user).select_related('following_id')
