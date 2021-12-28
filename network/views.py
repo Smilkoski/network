@@ -1,12 +1,15 @@
 from django.contrib.auth import authenticate, login, logout
 from django.db import IntegrityError
 from django.http import HttpResponseRedirect
-from django.shortcuts import render
+from django.shortcuts import render, redirect
 from django.urls import reverse
+from django.views.generic import (
+    DetailView,
+)
 from django.views.generic.edit import ModelFormMixin, ProcessFormView
 from django.views.generic.list import MultipleObjectMixin, MultipleObjectTemplateResponseMixin
 
-from .models import User, Post
+from .models import User, Post, Follower
 
 
 class ListAppendView(MultipleObjectMixin,
@@ -44,6 +47,47 @@ class ListAppendView(MultipleObjectMixin,
     def form_invalid(self, form):
         self.object_list = self.get_queryset()
         return self.render_to_response(self.get_context_data(object_list=self.object_list, form=form))
+
+
+class UserDetailView(DetailView):
+    model = User
+
+    def get_context_data(self, **kwargs):
+        context = {}
+        signed_user = User.objects.get(pk=self.request.user.id)
+        context['singed_user'] = signed_user
+        visited_user = User.objects.get(pk=kwargs['object'].id)
+        context['visited_user'] = visited_user
+
+        if Follower.objects.filter(follower=signed_user, following=visited_user).count() > 0:
+            context['follows'] = True
+        else:
+            context['follows'] = False
+
+        context['followers'] = Follower.objects.filter(following=visited_user).count()
+        context['following'] = Follower.objects.filter(follower=visited_user).count()
+
+        context['posts'] = Post.objects.filter(author=visited_user).order_by('-date_posted')
+        return context
+
+
+def follow(request, pk1, pk2, *args, **kwargs):
+    singed_user = User.objects.get(id=pk1)
+    user_to_follow = User.objects.get(id=pk2)
+
+    f = Follower(follower=singed_user, following=user_to_follow)
+    f.save()
+
+    return redirect(f"/detail/{user_to_follow.pk}")
+
+
+def unfollow(request, pk1, pk2, *args, **kwargs):
+    singed_user = User.objects.get(id=pk1)
+    user_to_unfollow = User.objects.get(id=pk2)
+
+    Follower.objects.filter(follower=singed_user, following=user_to_unfollow).delete()
+
+    return redirect(f"/detail/{user_to_unfollow.pk}")
 
 
 def login_view(request):
