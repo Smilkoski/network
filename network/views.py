@@ -5,6 +5,7 @@ from django.shortcuts import render, redirect
 from django.urls import reverse
 from django.views.generic import (
     DetailView,
+    ListView,
 )
 from django.views.generic.edit import ModelFormMixin, ProcessFormView
 from django.views.generic.list import MultipleObjectMixin, MultipleObjectTemplateResponseMixin
@@ -59,23 +60,41 @@ class UserDetailView(DetailView):
         visited_user = User.objects.get(pk=kwargs['object'].id)
         context['visited_user'] = visited_user
 
-        if Follower.objects.filter(follower=signed_user, following=visited_user).count() > 0:
+        if Follower.objects.filter(follower_id=signed_user, following_id=visited_user).count() > 0:
             context['follows'] = True
         else:
             context['follows'] = False
 
-        context['followers'] = Follower.objects.filter(following=visited_user).count()
-        context['following'] = Follower.objects.filter(follower=visited_user).count()
+        context['followers'] = Follower.objects.filter(following_id=visited_user).count()
+        context['following'] = Follower.objects.filter(follower_id=visited_user).count()
 
         context['posts'] = Post.objects.filter(author=visited_user).order_by('-date_posted')
+
+        context['not_same_user'] = not (signed_user.id == visited_user.id)
+
         return context
+
+
+class FollowingListView(ListView):
+    model = Post
+    context_object_name = 'object_list'
+    template_name = 'network/following_users.html'
+
+    def get_queryset(self):
+        following_users = Follower.objects.filter(follower_id=self.request.user).select_related('following_id')
+        following_users = [f.following_id.id for f in following_users]
+        posts = []
+        for i in following_users:
+            posts += list(Post.objects.filter(author_id=i).all())
+
+        return posts
 
 
 def follow(request, pk1, pk2, *args, **kwargs):
     singed_user = User.objects.get(id=pk1)
     user_to_follow = User.objects.get(id=pk2)
 
-    f = Follower(follower=singed_user, following=user_to_follow)
+    f = Follower(follower_id=singed_user, following_id=user_to_follow)
     f.save()
 
     return redirect(f"/detail/{user_to_follow.pk}")
@@ -85,7 +104,7 @@ def unfollow(request, pk1, pk2, *args, **kwargs):
     singed_user = User.objects.get(id=pk1)
     user_to_unfollow = User.objects.get(id=pk2)
 
-    Follower.objects.filter(follower=singed_user, following=user_to_unfollow).delete()
+    Follower.objects.filter(follower_id=singed_user, following_id=user_to_unfollow).delete()
 
     return redirect(f"/detail/{user_to_unfollow.pk}")
 
