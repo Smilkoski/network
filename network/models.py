@@ -5,7 +5,10 @@ from django.utils import timezone
 
 
 class User(AbstractUser):
-    pass
+    def serializable(self):
+        return {'id': self.id,
+                'username': self.username,
+                'email': self.email}
 
 
 class Follower(models.Model):
@@ -25,3 +28,14 @@ class Post(models.Model):
 
     def get_absolute_url(self):
         return reverse('post-detail', kwargs={'pk': self.pk})
+
+    def serialize(self):
+        date = f'{self.date_posted.day} {self.date_posted.strftime("%B")}, {self.date_posted.year}'
+        return {
+            "id": self.id,
+            "title": self.title,
+            "content": self.content,
+            "date_posted": date,
+            "likes": self.likes,
+            "author": self.author.serializable()
+        }
