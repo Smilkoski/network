@@ -1,10 +1,15 @@
+import json
+
 from django.contrib.auth import authenticate, login, logout
+from django.contrib.auth.decorators import login_required
 from django.db import IntegrityError
-from django.http import HttpResponseRedirect
+from django.http import HttpResponseRedirect, JsonResponse, HttpResponse
 from django.shortcuts import render, redirect
 from django.urls import reverse
+from django.views.decorators.csrf import csrf_exempt
 from django.views.generic import (
     ListView,
+    DetailView,
 )
 from django.views.generic.edit import ModelFormMixin, ProcessFormView
 from django.views.generic.list import MultipleObjectMixin, MultipleObjectTemplateResponseMixin
@@ -93,6 +98,40 @@ class FollowingListView(ListView):
             posts += list(Post.objects.filter(author_id=i).all())
 
         return posts
+
+
+class PostDetailView(DetailView):
+    model = Post
+    context_object_name = 'object'
+
+
+@csrf_exempt
+@login_required
+def post(request, post_id):
+    # Query for requested post
+    try:
+        post = Post.objects.get(author=request.user, pk=post_id)
+    except Post.DoesNotExist:
+        return JsonResponse({"error": "Post not found."}, status=404)
+
+    # Return post contents
+    if request.method == "GET":
+        return JsonResponse(post.serialize())
+
+    # Update whether email is read or should be archived
+    elif request.method == "PUT":
+        data = json.loads(request.body)
+        if data.get("title") is not None and data.get("content") is not None:
+            post.title = data["title"]
+            post.content = data["content"]
+        post.save()
+        return HttpResponse(status=204)
+
+    # Post must be via GET or PUT
+    else:
+        return JsonResponse({
+            "error": "GET or PUT request required."
+        }, status=400)
 
 
 def follow(request, pk1, pk2, *args, **kwargs):
