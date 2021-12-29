@@ -4,7 +4,9 @@
             <a class="mr-2" href="{% url 'user-detail' post.author_id %}">{{ post.author }}</a>
             <small class="text-muted">{{ post.date_posted|date:"d F, Y" }}</small>
         </div>
-        <p class="article-content">{{ post.content }}</p>
+        <a href="{% url 'post-detail' post.id%}">
+            <p class="article-content">{{ post.content }}</p>
+        </a>
         <div class="heart">
             <svg viewBox="0 0 24 24" aria-hidden="true">
                 <g>
