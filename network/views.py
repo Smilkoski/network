@@ -24,7 +24,7 @@ class ListAppendView(MultipleObjectMixin,
     """ A View that displays a list of objects and a form to create a new object.
     The View processes this form. """
     template_name = 'network/index.html'
-    fields = ['title', 'content']
+    fields = ['content']
     allow_empty = True
     ordering = '-date_posted'
     model = Post

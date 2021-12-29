@@ -2,7 +2,7 @@ from django.contrib.auth.models import AbstractUser
 from django.db import models
 from django.urls import reverse
 from django.utils import timezone
-
+from datetime import datetime
 
 class User(AbstractUser):
     def serializable(self):
@@ -17,14 +17,13 @@ class Follower(models.Model):
 
 
 class Post(models.Model):
-    title = models.CharField(max_length=240)
     content = models.TextField()
     date_posted = models.DateTimeField(default=timezone.now)
     likes = models.IntegerField(default=0)
     author = models.ForeignKey(User, on_delete=models.CASCADE)
 
     def __str__(self):
-        return self.title
+        return self.id
 
     def get_absolute_url(self):
         return reverse('post-detail', kwargs={'pk': self.pk})
@@ -33,7 +32,6 @@ class Post(models.Model):
         date = f'{self.date_posted.day} {self.date_posted.strftime("%B")}, {self.date_posted.year}'
         return {
             "id": self.id,
-            "title": self.title,
             "content": self.content,
             "date_posted": date,
             "likes": self.likes,
