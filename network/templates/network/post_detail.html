@@ -1,0 +1,21 @@
+{% extends 'network/layout.html' %}
+
+{% block body %}
+
+    <article class="media content-section" data-id="{{ object.id }}">
+        <div class="media-body">
+            <div class="article-metadata">
+                <a class="mr-2" href="{% url 'user-detail' object.author_id %}">{{ object.author }}</a>
+                <small class="text-muted">{{ object.date_posted|date:"d F, Y" }}</small>
+
+            </div>
+            <h2 class="article-title">{{ object.title }}</h2>
+            <p class="article-content">{{ object.content }}</p>
+            {% if object.author == user %}
+                <div>
+                    <a id="edit" class="btn btn-secondary mt-1 mb-1">Edit</a>
+                </div>
+            {% endif %}
+        </div>
+    </article>
+{% endblock body %}
