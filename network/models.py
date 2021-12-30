@@ -2,7 +2,7 @@ from django.contrib.auth.models import AbstractUser
 from django.db import models
 from django.urls import reverse
 from django.utils import timezone
-from datetime import datetime
+
 
 class User(AbstractUser):
     def serializable(self):
@@ -19,7 +19,6 @@ class Follower(models.Model):
 class Post(models.Model):
     content = models.TextField()
     date_posted = models.DateTimeField(default=timezone.now)
-    likes = models.IntegerField(default=0)
     author = models.ForeignKey(User, on_delete=models.CASCADE)
 
     def __str__(self):
@@ -34,6 +33,16 @@ class Post(models.Model):
             "id": self.id,
             "content": self.content,
             "date_posted": date,
-            "likes": self.likes,
             "author": self.author.serializable()
+        }
+
+
+class Likes(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='user_id')
+    liked_post = models.ForeignKey(Post, on_delete=models.CASCADE, related_name='post_id')
+
+    def serialize(self):
+        return {
+            'user': self.user.id,
+            'liked_post': self.liked_post.id,
         }
