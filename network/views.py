@@ -14,7 +14,12 @@ from django.views.generic import (
 from django.views.generic.edit import ModelFormMixin, ProcessFormView
 from django.views.generic.list import MultipleObjectMixin, MultipleObjectTemplateResponseMixin
 
-from .models import User, Post, Follower
+from .models import (
+    User,
+    Post,
+    Follower,
+    Likes,
+)
 
 
 class ListAppendView(MultipleObjectMixin,
@@ -39,9 +44,8 @@ class ListAppendView(MultipleObjectMixin,
         return self.render_to_response(context)
 
     def post(self, request, *args, **kwargs):
-        title = request.POST['title']
         content = request.POST['content']
-        p = Post(author=request.user, title=title, content=content)
+        p = Post(author=request.user, content=content)
         p.save()
         self.object = None
         form_class = self.get_form_class()
@@ -104,6 +108,12 @@ class PostDetailView(DetailView):
     model = Post
     context_object_name = 'object'
 
+    def get_context_data(self, **kwargs):
+        context = {}
+        context['object'] = self.object
+        context['num_likes'] = Likes.objects.filter(liked_post=self.object).count()
+        return context
+
 
 @csrf_exempt
 @login_required
@@ -121,8 +131,7 @@ def post(request, post_id):
     # Update whether email is read or should be archived
     elif request.method == "PUT":
         data = json.loads(request.body)
-        if data.get("title") is not None and data.get("content") is not None:
-            post.title = data["title"]
+        if data.get("content") is not None:
             post.content = data["content"]
         post.save()
         return HttpResponse(status=204)
@@ -132,6 +141,20 @@ def post(request, post_id):
         return JsonResponse({
             "error": "GET or PUT request required."
         }, status=400)
+
+
+@csrf_exempt
+@login_required
+def likes(request, post_id):
+    post = Post.objects.get(id=post_id)
+
+    if Likes.objects.filter(user=request.user, liked_post=post).count() == 0:
+        like = Likes(user=request.user, liked_post=post)
+        like.save()
+    else:
+        Likes.objects.get(user=request.user, liked_post=post).delete()
+
+    return HttpResponse(status=204)
 
 
 def follow(request, pk1, pk2, *args, **kwargs):
