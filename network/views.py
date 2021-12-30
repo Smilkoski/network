@@ -4,7 +4,7 @@ from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.decorators import login_required
 from django.db import IntegrityError
 from django.http import HttpResponseRedirect, JsonResponse, HttpResponse
-from django.shortcuts import render, redirect
+from django.shortcuts import render
 from django.urls import reverse
 from django.views.decorators.csrf import csrf_exempt
 from django.views.generic import (
@@ -164,7 +164,7 @@ def follow(request, pk1, pk2, *args, **kwargs):
     f = Follower(follower_id=singed_user, following_id=user_to_follow)
     f.save()
 
-    return redirect(f"/detail/{user_to_follow.pk}")
+    return HttpResponseRedirect(reverse('user-detail', args=[user_to_follow.pk]))
 
 
 def unfollow(request, pk1, pk2, *args, **kwargs):
@@ -173,7 +173,7 @@ def unfollow(request, pk1, pk2, *args, **kwargs):
 
     Follower.objects.filter(follower_id=singed_user, following_id=user_to_unfollow).delete()
 
-    return redirect(f"/detail/{user_to_unfollow.pk}")
+    return HttpResponseRedirect(reverse('user-detail', args=[user_to_unfollow.pk]))
 
 
 def login_view(request):
