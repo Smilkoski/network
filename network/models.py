@@ -1,7 +1,9 @@
 from django.contrib.auth.models import AbstractUser
+from django.core.exceptions import ValidationError
 from django.db import models
 from django.urls import reverse
 from django.utils import timezone
+from django.utils.translation import gettext_lazy as _
 
 
 class User(AbstractUser):
@@ -9,6 +11,11 @@ class User(AbstractUser):
         return {'id': self.id,
                 'username': self.username,
                 'email': self.email}
+
+    def clean(self):
+        usernames = User.objects.all().values_list('username', flat=True)
+        if self.username in usernames:
+            raise ValidationError(_('Username already taken.'))
 
 
 class Follower(models.Model):
