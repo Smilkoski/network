@@ -43,6 +43,12 @@ class Post(models.Model):
             "author": self.author.serializable()
         }
 
+    def clean(self):
+        contents = Post.objects.all().values_list('content', flat=True)
+        authors = User.objects.all().values_list('username', flat=True)
+        if self.content in contents and self.author in authors:
+            raise ValidationError(_('This post already exist.'))
+
 
 class Likes(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='user_id')
