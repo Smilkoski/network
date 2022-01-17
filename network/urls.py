@@ -25,6 +25,6 @@ urlpatterns = [
     path("logout/", logout_view, name="logout"),
     path("register/", register, name="register"),
     # API Routes
-    path("post/<int:post_id>/", post, name="get_post"),
+    path("post/<int:post_id>", post, name="get_post"),
     path("likes/<int:post_id>", likes, name="get_likes"),
 ]
