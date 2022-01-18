@@ -183,22 +183,21 @@ class WebpageTests(TestCase):
         articles = driver.find_elements_by_tag_name('article')
         self.assertEqual(len(articles), 10)
 
-    def get_random_post_url(self):
+    def get_first_post_url(self):
         self.test_login()
         driver.get('http://127.0.0.1:8000')
         posts = driver.find_elements_by_tag_name('article > div > a')
-        rand_idx = random.randint(0, 9)
 
         attrs = driver.execute_script(
             'var items = {}; \
             for (index = 0; index < arguments[0].attributes.length; ++index) { \
               items[arguments[0].attributes[index].name] = arguments[0].attributes[index].value }; \
-              return items;', posts[rand_idx])
+              return items;', posts[0])
         return attrs['href']
 
     def test_like(self):
         """Test like button on random post"""
-        url = self.get_random_post_url()
+        url = self.get_first_post_url()
         driver.get(f'http://127.0.0.1:8000{url}')
         before_num_likes = int(driver.find_element_by_class_name('num_likes').get_attribute('innerHTML'))
         # click like
@@ -210,7 +209,7 @@ class WebpageTests(TestCase):
 
     def test_edit(self):
         """Test edit button on random post"""
-        url = self.get_random_post_url()
+        url = self.get_first_post_url()
         driver.get(f'http://127.0.0.1:8000{url}')
         # click edit button
         driver.find_element_by_id('edit').click()
