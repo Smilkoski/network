@@ -187,7 +187,7 @@ class WebpageTests(TestCase):
         self.test_login()
         driver.get('http://127.0.0.1:8000')
         posts = driver.find_elements_by_tag_name('article > div > a')
-        rand_idx = random.randint(0, 10)
+        rand_idx = random.randint(0, 9)
 
         attrs = driver.execute_script(
             'var items = {}; \
